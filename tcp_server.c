@@ -18,6 +18,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <stdbool.h>
+#include <signal.h>
 
 #include "networks.h"
 
@@ -55,33 +57,63 @@ void clientExit(int);
 
 int server_socket = 0;   //socket descriptor for the server socket
 int seq_num = 0;
-client *clients;
+client *clients = NULL;
 int client_socket_count = 0;
 int client_socket_max = 10;
 int port_num = 0;		 //	port number for server socket
-char *buf;              //buffer for receiving from client
+char *buf = NULL;              //buffer for receiving from client
 int buffer_size = 1024;  //packet size variable
+
+bool go_exit = false;
+
+void sig_int_handler(int signo) {
+  printf("SIGINT received. Exiting...\n");
+  if (signo == SIGINT) {
+    go_exit = true;
+  }
+}
 
 int main(int argc, char *argv[])
 {
-	clients = (client *) malloc(sizeof(client) * client_socket_max);
-    //create packet buffer
-    buf = (char *) malloc(buffer_size);
-    
-    //	get port_num from args if passed in
-    if(argc >= 2) {
-    	port_num = atoi(argv[1]);
-    }
+  signal(SIGINT, sig_int_handler);
 
-    //create the server socket
-    server_socket = tcp_recv_setup(port_num);
+  clients = (client *) malloc(sizeof(client) * client_socket_max);
+  if (!clients) {
+    perror("malloc");
+    exit(-1);
+  }
 
-    //look for a client to serve
-    tcp_listen();
-    
-    while(1) {
-    	tcp_select();
-    }
+  //create packet buffer
+  buf = (char *) malloc(buffer_size);
+  if (!buf) {
+    perror("malloc");
+    exit(-1);
+  }
+  
+  //	get port_num from args if passed in
+  //FIXME: [omnibusor] Vulnerable?
+  if(argc >= 2) {
+    port_num = atoi(argv[1]);
+  }
+  
+  //create the server socket
+  server_socket = tcp_recv_setup(port_num);
+  
+  //look for a client to serve
+  tcp_listen();
+  
+  while(!go_exit) {
+    tcp_select();
+  }
+
+  /*
+  if (clients)
+    free(clients);
+  if (buf)
+    free(buf);
+  */
+
+  return 0;
 }
 
 /* This function sets the server socket.  It lets the system
