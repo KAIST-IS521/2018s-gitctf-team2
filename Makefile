@@ -18,14 +18,14 @@ LIBS =
 
 all:  cclient server
 
-cclient: tcp_client.c networks.h testing.o
-	$(CC) $(CFLAGS) -o cclient -Wall tcp_client.c testing.o $(LIBS)
+cclient: tcp_client.c networks.h #testing.o
+	$(CC) $(CFLAGS) -o cclient -Wall tcp_client.c $(LIBS)
 
-server: tcp_server.c networks.h testing.o
-	$(CC) $(CFLAGS) -o server -Wall tcp_server.c testing.o $(LIBS)
+server: tcp_server.c networks.h #testing.o
+	$(CC) $(CFLAGS) -o server -Wall tcp_server.c $(LIBS)
 
-testing.o: testing.c testing.h
-	   $(CC) $(CFLAGS) -c testing.c
+#testing.o: testing.c testing.h
+#	   $(CC) $(CFLAGS) -c testing.c
 clean:
 	rm -f server cclient testing.o
 
