@@ -249,23 +249,17 @@ void tcp_receive(int client_socket) {
   else {
     switch(buf[4]) {
       case CLIENT_INITIAL:
-        printf("CLIENT_INITIAL\n");
         initialPacketReceive(client_socket, buf, message_len);
         break;
       case CLIENT_BROADCAST:
-        printf("CLIENT_BROADCAST\n");
         clientBroadcastReceive(client_socket, buf, message_len);
         break;
       case CLIENT_MESSAGE: 
-        printf("CLIENT_MESSAGE\n");
-        clientMessageReceive(client_socket, buf, message_len);
         break;
       case CLIENT_LIST:
-        printf("CLIENT_LIST\n");
         clientListReceive(client_socket, buf, message_len);
         break;
       case CLIENT_EXIT:
-        printf("CLIENT_EXIT\n");
         clientExitReceive(client_socket, buf, message_len);
         break;
       default:
