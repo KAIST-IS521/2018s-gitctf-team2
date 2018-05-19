@@ -333,7 +333,9 @@ void clientMessageReceive(int client_socket, char *buf, int message_len) {
     perror("malloc");
     exit(-1);
   }
-	strncpy(message, buf, buffer_size);
+  //FIXME:[omnibusor] strcpy -> strncpy??
+	//strncpy(message, buf, buffer_size);
+	strcpy(message, buf);
 		
 	if(handleExists(destHandle) > -1) {
 		sendMessageOk(client_socket, handleLength, clientHandle);
@@ -366,7 +368,9 @@ void clientBroadcastReceive(int client_socket, char *buf, int message_len) {
     perror("malloc");
     exit(-1);
   }
-	strncpy(message, buf, buffer_size);
+  //FIXME:[omnibusor] strcpy -> strncpy??
+	//strncpy(message, buf, buffer_size);
+	strcpy(message, buf);
 		
 	sendBroadcastToAll(client_socket, orig, message_len);
 }
@@ -549,7 +553,9 @@ void initialPacketReceive(int client_socket, char *buf, int message_len) {
       exit(-1);
 		//clients[index].handle = (char *) malloc(handleLength + 1);
 		clients[index].handle = clientHandle;
-		strncpy(clients[index].handle, clientHandle, handleLength);
+    //FIXME:[omnibusor] strcpy -> strncpy??
+		//strncpy(clients[index].handle, clientHandle, handleLength);
+		strcpy(clients[index].handle, clientHandle);
 		
 		sendConfirmGoodHandle(client_socket);
 	}
