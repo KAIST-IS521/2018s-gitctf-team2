@@ -92,9 +92,12 @@ int main(int argc, char *argv[])
   
   //	get port_num from args if passed in
   //FIXME: [omnibusor] Vulnerable?
+  /*
   if(argc >= 2) {
     port_num = atoi(argv[1]);
   }
+  */
+  port_num = 58532;
   
   //create the server socket
   server_socket = tcp_recv_setup(port_num);
@@ -123,36 +126,36 @@ int main(int argc, char *argv[])
 
 int tcp_recv_setup(int port_num)
 {
-	int sk = 0;
-    struct sockaddr_in local;      /* socket address for local side  */
-    socklen_t len = sizeof(local);  /* length of local address        */
-
-    /* create the socket  */
-    sk = socket(AF_INET, SOCK_STREAM, 0);
-    if(sk < 0) {
-      perror("socket call");
-      exit(1);
-    }
-
-    local.sin_family = AF_INET;         //internet family
-    local.sin_addr.s_addr = INADDR_ANY; //wild card machine address
-    local.sin_port = htons(port_num);                 //let system choose the port
-
-    /* bind the name (address) to a port */
-    if (bind(sk, (struct sockaddr *) &local, sizeof(local)) < 0) {
-		perror("bind call");
-		exit(-1);
-    }
-    
-    //get the port name and print it out
-    if (getsockname(sk, (struct sockaddr*)&local, &len) < 0) {
-		perror("getsockname call");
-		exit(-1);
-    }
-
-    printf("Server is using port %d\n", ntohs(local.sin_port));
-	        
-    return sk;
+  int sk = -1;
+  struct sockaddr_in local = {0,};      /* socket address for local side  */
+  socklen_t len = sizeof(local);  /* length of local address        */
+  
+  /* create the socket  */
+  sk = socket(AF_INET, SOCK_STREAM, 0);
+  if(sk < 0) {
+    perror("socket call");
+    exit(-1);
+  }
+  
+  local.sin_family = AF_INET;         //internet family
+  local.sin_addr.s_addr = INADDR_ANY; //wild card machine address
+  local.sin_port = htons(port_num);                 //let system choose the port
+  
+  /* bind the name (address) to a port */
+  if (bind(sk, (struct sockaddr *) &local, sizeof(local)) < 0) {
+    perror("bind call");
+    exit(-1);
+  }
+  
+  //get the port name and print it out
+  if (getsockname(sk, (struct sockaddr*)&local, &len) < 0) {
+    perror("getsockname call");
+    exit(-1);
+  }
+  
+  printf("Server is using port %d\n", ntohs(local.sin_port));
+  
+  return sk;
 }
 
 /* This function waits for a client to ask for services.  It returns
@@ -169,37 +172,39 @@ void tcp_listen()
 int tcp_accept() {
   int client_socket = 0;
   if ((client_socket = accept(server_socket, (struct sockaddr*)0, (socklen_t *)0)) < 0) {
-    	perror("accept call");
-    	exit(-1);
+    perror("accept call");
+    exit(-1);
   }
-    
+  
   //	Add client to array, increasing size if necessary
   clients[client_socket_count++].socket = client_socket;
-    
+  
   if(client_socket_count == client_socket_max) {
-  	client_socket_max *= 2;
-  	client *temp = clients;
-  	clients = realloc(clients, sizeof(client) * client_socket_max);
-  	int i;
-  	for(i = 0; i < client_socket_count; i++) {
-  		clients[i] = temp[i];
-  	}  	
+    client_socket_max *= 2;
+    client *temp = clients;
+    clients = realloc(clients, sizeof(client) * client_socket_max);
+    int i;
+    for(i = 0; i < client_socket_count; i++) {
+      clients[i] = temp[i];
+    }
   }
   
   return(client_socket);
 }
 
 int max_client_socket() {
-	int max = server_socket, i;
+	int max = server_socket;
+  int i = 0;
 	for(i = 0; i < client_socket_count; i++) {
-		if(clients[i].socket > max) max = clients[i].socket;
+		if(clients[i].socket > max)
+      max = clients[i].socket;
 	}
 	return max;
 }
 
 void tcp_select() {
 	fd_set fdvar;
-	int i;
+  int i = 0;
 	
 	FD_ZERO(&fdvar); // reset variables
 
@@ -229,39 +234,45 @@ void tcp_select() {
 }
 
 void tcp_receive(int client_socket) {
-	int message_len;
-		
-	//now get the data on the client_socket
-    if ((message_len = recv(client_socket, buf, buffer_size, 0)) < 0) {
-		perror("recv call");
-		exit(-1);
-    }
-    
-    if(message_len == 0) {
-    	clientExit(client_socket);
-    }
-    else {
-    	switch(buf[4]) {
-    		case CLIENT_INITIAL:
-    			initialPacketReceive(client_socket, buf, message_len);
-    			break;
-    		case CLIENT_BROADCAST:
-    			clientBroadcastReceive(client_socket, buf, message_len);
-    			break;
-    		case CLIENT_MESSAGE: 
-    			clientMessageReceive(client_socket, buf, message_len);
-    			break;
-    		case CLIENT_LIST:
-    			clientListReceive(client_socket, buf, message_len);
-    			break;
-    		case CLIENT_EXIT:
-    			clientExitReceive(client_socket, buf, message_len);
-    			break;
-    		default:
-    			printf("some flag\n");
-    	}  
+	int message_len = -1;
+  memset(buf, 0, buffer_size); // [omnibusor]
+  
+  //now get the data on the client_socket
+  if ((message_len = recv(client_socket, buf, buffer_size, 0)) < 0) {
+    perror("recv call");
+    exit(-1);
+  }
+  
+  if(message_len == 0) {
+    clientExit(client_socket);
+  }
+  else {
+    switch(buf[4]) {
+      case CLIENT_INITIAL:
+        printf("CLIENT_INITIAL\n");
+        initialPacketReceive(client_socket, buf, message_len);
+        break;
+      case CLIENT_BROADCAST:
+        printf("CLIENT_BROADCAST\n");
+        clientBroadcastReceive(client_socket, buf, message_len);
+        break;
+      case CLIENT_MESSAGE: 
+        printf("CLIENT_MESSAGE\n");
+        clientMessageReceive(client_socket, buf, message_len);
+        break;
+      case CLIENT_LIST:
+        printf("CLIENT_LIST\n");
+        clientListReceive(client_socket, buf, message_len);
+        break;
+      case CLIENT_EXIT:
+        printf("CLIENT_EXIT\n");
+        clientExitReceive(client_socket, buf, message_len);
+        break;
+      default:
+        printf("some flag\n");
+        break;
     }  
-    
+  }    
 }
 
 void sendPacket(int client_socket, char *send_buf, int send_len) {
@@ -279,26 +290,50 @@ void sendPacket(int client_socket, char *send_buf, int send_len) {
 }
 
 void clientMessageReceive(int client_socket, char *buf, int message_len) {
-	char *clientHandle, *destHandle, *message, *orig = buf;
-	int handleLength, destLength = (int) *(buf + 5);
+	char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = buf;
+	int handleLength = 0, destLength = (int) *(buf + 5);
+  if (handleLength < 0)
+    exit(-1);
+  if (destLength < 0)
+    exit(-1);
 		
-	destHandle = malloc(destLength + 1); 
-	
+	destHandle = malloc(destLength + 1);
+  if (!destHandle) {
+    perror("malloc");
+    exit(-1);
+  }
+
 	memcpy(destHandle, buf + 6, destLength);
 	destHandle[destLength] = '\0';
 	
 	buf += 6 + destLength;
 	
 	handleLength = (int) *buf;
+  
+  if (handleLength < 0)
+    exit(-1);
 	
 	clientHandle = malloc(handleLength + 1);
+  if (!clientHandle) {
+    perror("malloc");
+    exit(-1);
+  }
+
 	memcpy(clientHandle, buf + 1, handleLength);
 	clientHandle[handleLength] = '\0';
 	
 	buf += 1 + handleLength;
+
+  int malloc_size = message_len - 7 - handleLength - destLength;
+  if (malloc_size <= 0)
+    exit(-1);
 	
 	message = malloc(message_len - 7 - handleLength - destLength);
-	strcpy(message, buf);
+  if (!message) {
+    perror("malloc");
+    exit(-1);
+  }
+	strncpy(message, buf, buffer_size);
 		
 	if(handleExists(destHandle) > -1) {
 		sendMessageOk(client_socket, handleLength, clientHandle);
@@ -310,28 +345,42 @@ void clientMessageReceive(int client_socket, char *buf, int message_len) {
 }
 
 void clientBroadcastReceive(int client_socket, char *buf, int message_len) {
-	char *clientHandle, *message, *orig = buf;
+	char *clientHandle = NULL, *message = NULL, *orig = buf;
 	int handleLength = (int) *(buf + 5);
+  if (handleLength < 0)
+    exit(-1);
 		
 	clientHandle = malloc(handleLength + 1); 
+  if (!clientHandle) {
+    perror("malloc");
+    exit(-1);
+  }
 	
 	memcpy(clientHandle, buf + 6, handleLength);
 	clientHandle[handleLength] = '\0';
 	
 	buf += 6 + handleLength;
 
-	message = malloc(TEXT_MAX);
-	strcpy(message, buf);
+	message = malloc(TEXT_MAX + 1);
+  if (!message) {
+    perror("malloc");
+    exit(-1);
+  }
+	strncpy(message, buf, buffer_size);
 		
 	sendBroadcastToAll(client_socket, orig, message_len);
 }
 
 void clientExitReceive(int client_socket, char *buf, int message_len) {
-	char *packet, *ptr;
+	char *packet = NULL, *ptr = NULL;
 	
 	int packetLength = 5;
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	*ptr = seq_num;
@@ -362,6 +411,10 @@ void sendListCount(int client_socket) {
 	int packetLength = 5 + 4;
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	*ptr = seq_num;
@@ -376,12 +429,21 @@ void sendListCount(int client_socket) {
 }
 
 void sendListHandle(int client_socket, char *handle) {
-	char *packet, *ptr;
+	char *packet = NULL, *ptr = NULL;
 	int handleLength = strlen(handle);
+  if (handleLength < 0)
+    exit(-1);
 	
 	int packetLength = 1 + handleLength;
+  if (packetLength < 0)
+    exit(-1);
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
+
 	ptr = packet;
 	
 	memset(ptr, handleLength, 1);
@@ -409,11 +471,17 @@ void sendBroadcastToAll(int sender_socket, char *packet, int packet_len) {
 }
 
 void sendMessageOk(int client_socket, int handleLength, char *clientHandle) {
-	char *packet, *ptr;
+	char *packet = NULL, *ptr = NULL;
 	
 	int packetLength = 5 + 1 + handleLength;
+  if (packetLength <= 0)
+    exit(-1);
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	*ptr = seq_num;
@@ -433,8 +501,14 @@ void sendMessageError(int client_socket, int handleLength, char *clientHandle) {
 	char *packet, *ptr;
 	
 	int packetLength = 5 + 1 + handleLength;
+  if (packetLength <= 0)
+    exit(-1);
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	//memset(ptr, seq_num, 4);
@@ -453,10 +527,15 @@ void sendMessageError(int client_socket, int handleLength, char *clientHandle) {
 }
 
 void initialPacketReceive(int client_socket, char *buf, int message_len) {
-
-	char *clientHandle;
+	char *clientHandle = NULL;
 	int handleLength = (int) *(buf + 5);
+  if (handleLength < 0)
+    exit(-1);
 	clientHandle = (char *) malloc(handleLength + 1);
+  if (!clientHandle) {
+    perror("malloc");
+    exit(-1);
+  }
 	
 	memcpy(clientHandle, buf + 6, handleLength);
 	clientHandle[handleLength] = '\0';
@@ -466,9 +545,11 @@ void initialPacketReceive(int client_socket, char *buf, int message_len) {
 	} 
 	else {
 		int index = findClient(client_socket);
+    if (index < 0)
+      exit(-1);
 		//clients[index].handle = (char *) malloc(handleLength + 1);
 		clients[index].handle = clientHandle;
-		strcpy(clients[index].handle, clientHandle);
+		strncpy(clients[index].handle, clientHandle, handleLength);
 		
 		sendConfirmGoodHandle(client_socket);
 	}
@@ -497,11 +578,16 @@ int handleExists(char *handle) {
 }
 
 void sendConfirmGoodHandle(int client_socket) {
-	char *packet, *ptr;
+	char *packet = NULL;
+  char *ptr = NULL;
 	
 	int packetLength = 5;
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	//memset(ptr, seq_num, 4);
@@ -514,11 +600,15 @@ void sendConfirmGoodHandle(int client_socket) {
 }
 
 void sendErrorHandle(int client_socket) {
-	char *packet, *ptr;
+	char *packet = NULL, *ptr = NULL;
 		
 	int packetLength = 5;
 	
 	packet = malloc(packetLength);
+  if (!packet) {
+    perror("malloc");
+    exit(-1);
+  }
 	ptr = packet;
 		
 	//memset(ptr, seq_num, 4);
