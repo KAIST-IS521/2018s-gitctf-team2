@@ -11,12 +11,5 @@ COPY ./flag /var/ctf/
 ADD . /src
 
 RUN cd /src; make
-#RUN echo '/src/server 4000 &' >> /etc/rc.local
 
-#WORKDIR /src
-#RUN ./start.sh
-#RUN ps -aux
-#RUN /src/server 4000
 ENTRYPOINT ["/src/server", "4000"]
-#ENTRYPOINT ["nohup","sh","-c","echo", "4000","&"]
-#ENTRYPOINT [ "./cclient", "user", "127.0.0.1", "4000" ]
