@@ -35,11 +35,11 @@ int max_client_socket();
 void tcp_receive(int);
 void tcp_select();
 int tcp_accept();
-void initialPacketReceive(int, char *, unsigned int);
-void clientMessageReceive(int, char *, unsigned int);
-void clientBroadcastReceive(int, char *, unsigned int);
-void clientExitReceive(int, char *, unsigned int);
-void clientListReceive(int, char *, unsigned int);
+void initialPacketReceive(int, unsigned char *, unsigned int);
+void clientMessageReceive(int, unsigned char *, unsigned int);
+void clientBroadcastReceive(int, unsigned char *, unsigned int);
+void clientExitReceive(int, unsigned char *, unsigned int);
+void clientListReceive(int, unsigned char *, unsigned int);
 void sendConfirmGoodHandle(int);
 void sendErrorHandle(int);
 void sendClientMessage(char *, char *, unsigned int);
@@ -284,8 +284,8 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
     //printf("Amount of data sent is: %d\n", sent);
 }
 
-void clientMessageReceive(int client_socket, char *buf, unsigned int message_len) {
-	char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = buf;
+void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
+	char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = (char*)buf;
 	unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
@@ -330,7 +330,7 @@ void clientMessageReceive(int client_socket, char *buf, unsigned int message_len
   }
   //FIXME:[omnibusor] strcpy -> strncpy??
 	//strncpy(message, buf, buffer_size);
-	strcpy(message, buf);
+	strcpy(message, (char*)buf);
 		
 	if(handleExists(destHandle) > -1) {
 		sendMessageOk(client_socket, handleLength, clientHandle);
@@ -341,8 +341,8 @@ void clientMessageReceive(int client_socket, char *buf, unsigned int message_len
 	}
 }
 
-void clientBroadcastReceive(int client_socket, char *buf, unsigned int message_len) {
-	char *clientHandle = NULL, *message = NULL, *orig = buf;
+void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
+	char *clientHandle = NULL, *message = NULL, *orig = (char*)buf;
 	unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
@@ -365,12 +365,12 @@ void clientBroadcastReceive(int client_socket, char *buf, unsigned int message_l
   }
   //FIXME:[omnibusor] strcpy -> strncpy??
 	//strncpy(message, buf, buffer_size);
-	strcpy(message, buf);
+	strcpy(message, (char*)buf);
 		
 	sendBroadcastToAll(client_socket, orig, message_len);
 }
 
-void clientExitReceive(int client_socket, char *buf, unsigned int message_len) {
+void clientExitReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
 	char *packet = NULL, *ptr = NULL;
 	
 	unsigned int packetLength = 5;
@@ -390,7 +390,7 @@ void clientExitReceive(int client_socket, char *buf, unsigned int message_len) {
 	sendPacket(client_socket, packet, packetLength);
 }
 
-void clientListReceive(int client_socket, char *buf, unsigned int message_len) {
+void clientListReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
 	sendList(client_socket);
 }
 
@@ -525,7 +525,7 @@ void sendMessageError(int client_socket, unsigned int handleLength, char *client
 	sendPacket(client_socket, packet, packetLength);
 }
 
-void initialPacketReceive(int client_socket, char *buf, unsigned int message_len) {
+void initialPacketReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
 	char *clientHandle = NULL;
 	unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
