@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     exit(-1);
   }
 
-  port_num = 58532;
+  port_num = atoi(argv[1]);
 
   //create the server socket
   server_socket = tcp_recv_setup(port_num);
