@@ -213,7 +213,6 @@ void tcp_receive() {
     		clientExit();
     		break;
     	case SERVER_LIST:
-        printf("%d\n", message_len);
     		receiveList(socket_num, buf, message_len);
     		break;
     	case CLIENT_MESSAGE:
