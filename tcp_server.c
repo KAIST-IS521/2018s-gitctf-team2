@@ -266,7 +266,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
   }
 
   seq_num++;
-
+  sleep(0.3);
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
