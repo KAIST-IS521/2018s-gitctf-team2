@@ -35,20 +35,20 @@ int max_client_socket();
 void tcp_receive(int);
 void tcp_select();
 int tcp_accept();
-void initialPacketReceive(int, char *, int);
-void clientMessageReceive(int, char *, int);
-void clientBroadcastReceive(int, char *, int);
-void clientExitReceive(int, char *, int);
-void clientListReceive(int, char *, int);
+void initialPacketReceive(int, char *, unsigned int);
+void clientMessageReceive(int, char *, unsigned int);
+void clientBroadcastReceive(int, char *, unsigned int);
+void clientExitReceive(int, char *, unsigned int);
+void clientListReceive(int, char *, unsigned int);
 void sendConfirmGoodHandle(int);
 void sendErrorHandle(int);
-void sendClientMessage(char *, char *, int);
-void sendBroadcastToAll(int, char *, int);
+void sendClientMessage(char *, char *, unsigned int);
+void sendBroadcastToAll(int, char *, unsigned int);
 void sendList(int);
 void sendListCount(int);
 void sendListHandle(int, char *);
-void sendMessageOk(int, int, char *);
-void sendMessageError(int, int ,char *);
+void sendMessageOk(int, unsigned int, char *);
+void sendMessageError(int, unsigned int ,char *);
 int handleExists(char *);
 int findClient(int);
 void clientExit(int);
@@ -61,8 +61,8 @@ client *clients = NULL;
 int client_socket_count = 0;
 int client_socket_max = 10;
 int port_num = 0;		 //	port number for server socket
-char *buf = NULL;              //buffer for receiving from client
-int buffer_size = 1024;  //packet size variable
+unsigned char *buf = NULL;              //buffer for receiving from client
+unsigned int buffer_size = 1024;  //packet size variable
 
 bool go_exit = false;
 
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
   }
 
   //create packet buffer
-  buf = (char *) malloc(buffer_size);
+  buf = (unsigned char *) malloc(buffer_size);
   if (!buf) {
     perror("malloc");
     exit(-1);
@@ -234,7 +234,7 @@ void tcp_select() {
 }
 
 void tcp_receive(int client_socket) {
-	int message_len = -1;
+	unsigned int message_len = -1;
   memset(buf, 0, buffer_size); // [omnibusor]
   
   //now get the data on the client_socket
@@ -254,7 +254,8 @@ void tcp_receive(int client_socket) {
       case CLIENT_BROADCAST:
         clientBroadcastReceive(client_socket, buf, message_len);
         break;
-      case CLIENT_MESSAGE: 
+      case CLIENT_MESSAGE:
+        clienteMessageReceive(client_socket, buf, message_len); 
         break;
       case CLIENT_LIST:
         clientListReceive(client_socket, buf, message_len);
@@ -269,7 +270,7 @@ void tcp_receive(int client_socket) {
   }    
 }
 
-void sendPacket(int client_socket, char *send_buf, int send_len) {
+void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 	int sent;
 	
 	sent = send(client_socket, send_buf, send_len, 0);
@@ -283,9 +284,9 @@ void sendPacket(int client_socket, char *send_buf, int send_len) {
     //printf("Amount of data sent is: %d\n", sent);
 }
 
-void clientMessageReceive(int client_socket, char *buf, int message_len) {
+void clientMessageReceive(int client_socket, char *buf, unsigned int message_len) {
 	char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = buf;
-	int handleLength = 0, destLength = (int) *(buf + 5);
+	unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
   if (destLength < 0)
@@ -302,7 +303,7 @@ void clientMessageReceive(int client_socket, char *buf, int message_len) {
 	
 	buf += 6 + destLength;
 	
-	handleLength = (int) *buf;
+	handleLength = (unsigned int) *buf;
   
   if (handleLength < 0)
     exit(-1);
@@ -318,7 +319,7 @@ void clientMessageReceive(int client_socket, char *buf, int message_len) {
 	
 	buf += 1 + handleLength;
 
-  int malloc_size = message_len - 7 - handleLength - destLength;
+  unsigned int malloc_size = message_len - 7 - handleLength - destLength;
   if (malloc_size <= 0)
     exit(-1);
 	
@@ -340,9 +341,9 @@ void clientMessageReceive(int client_socket, char *buf, int message_len) {
 	}
 }
 
-void clientBroadcastReceive(int client_socket, char *buf, int message_len) {
+void clientBroadcastReceive(int client_socket, char *buf, unsigned int message_len) {
 	char *clientHandle = NULL, *message = NULL, *orig = buf;
-	int handleLength = (int) *(buf + 5);
+	unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
 		
@@ -369,10 +370,10 @@ void clientBroadcastReceive(int client_socket, char *buf, int message_len) {
 	sendBroadcastToAll(client_socket, orig, message_len);
 }
 
-void clientExitReceive(int client_socket, char *buf, int message_len) {
+void clientExitReceive(int client_socket, char *buf, unsigned int message_len) {
 	char *packet = NULL, *ptr = NULL;
 	
-	int packetLength = 5;
+	unsigned int packetLength = 5;
 	
 	packet = malloc(packetLength);
   if (!packet) {
@@ -389,7 +390,7 @@ void clientExitReceive(int client_socket, char *buf, int message_len) {
 	sendPacket(client_socket, packet, packetLength);
 }
 
-void clientListReceive(int client_socket, char *buf, int message_len) {
+void clientListReceive(int client_socket, char *buf, unsigned int message_len) {
 	sendList(client_socket);
 }
 
@@ -406,7 +407,7 @@ void sendList(int client_socket) {
 void sendListCount(int client_socket) {
 	char *packet, *ptr;
 	
-	int packetLength = 5 + 4;
+	unsigned int packetLength = 5 + 4;
 	
 	packet = malloc(packetLength);
   if (!packet) {
@@ -428,11 +429,11 @@ void sendListCount(int client_socket) {
 
 void sendListHandle(int client_socket, char *handle) {
 	char *packet = NULL, *ptr = NULL;
-	int handleLength = strlen(handle);
+	unsigned int handleLength = strlen(handle);
   if (handleLength < 0)
     exit(-1);
 	
-	int packetLength = 1 + handleLength;
+	unsigned int packetLength = 1 + handleLength;
   if (packetLength < 0)
     exit(-1);
 	
@@ -452,14 +453,14 @@ void sendListHandle(int client_socket, char *handle) {
 	sendPacket(client_socket, packet, packetLength);
 }
 
-void sendClientMessage(char *dest_handle, char *packet, int packet_len) {
+void sendClientMessage(char *dest_handle, char *packet, unsigned int packet_len) {
 	int index = handleExists(dest_handle);
 	int dest_socket = clients[index].socket;
 	
 	sendPacket(dest_socket, packet, packet_len);
 }
 
-void sendBroadcastToAll(int sender_socket, char *packet, int packet_len) {
+void sendBroadcastToAll(int sender_socket, char *packet, unsigned int packet_len) {
 	int ndx;
 	for(ndx = 0; ndx < client_socket_count; ndx++) {
 		if(clients[ndx].socket != sender_socket) {
@@ -468,10 +469,10 @@ void sendBroadcastToAll(int sender_socket, char *packet, int packet_len) {
 	}
 }
 
-void sendMessageOk(int client_socket, int handleLength, char *clientHandle) {
+void sendMessageOk(int client_socket, unsigned int handleLength, char *clientHandle) {
 	char *packet = NULL, *ptr = NULL;
 	
-	int packetLength = 5 + 1 + handleLength;
+	unsigned int packetLength = 5 + 1 + handleLength;
   if (packetLength <= 0)
     exit(-1);
 	
@@ -495,10 +496,10 @@ void sendMessageOk(int client_socket, int handleLength, char *clientHandle) {
 	
 	sendPacket(client_socket, packet, packetLength);
 }
-void sendMessageError(int client_socket, int handleLength, char *clientHandle) {
+void sendMessageError(int client_socket, unsigned int handleLength, char *clientHandle) {
 	char *packet, *ptr;
 	
-	int packetLength = 5 + 1 + handleLength;
+	unsigned int packetLength = 5 + 1 + handleLength;
   if (packetLength <= 0)
     exit(-1);
 	
@@ -524,9 +525,9 @@ void sendMessageError(int client_socket, int handleLength, char *clientHandle) {
 	sendPacket(client_socket, packet, packetLength);
 }
 
-void initialPacketReceive(int client_socket, char *buf, int message_len) {
+void initialPacketReceive(int client_socket, char *buf, unsigned int message_len) {
 	char *clientHandle = NULL;
-	int handleLength = (int) *(buf + 5);
+	unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
 	clientHandle = (char *) malloc(handleLength + 1);
@@ -581,7 +582,7 @@ void sendConfirmGoodHandle(int client_socket) {
 	char *packet = NULL;
   char *ptr = NULL;
 	
-	int packetLength = 5;
+	unsigned int packetLength = 5;
 	
 	packet = malloc(packetLength);
   if (!packet) {
@@ -602,7 +603,7 @@ void sendConfirmGoodHandle(int client_socket) {
 void sendErrorHandle(int client_socket) {
 	char *packet = NULL, *ptr = NULL;
 		
-	int packetLength = 5;
+	unsigned int packetLength = 5;
 	
 	packet = malloc(packetLength);
   if (!packet) {
