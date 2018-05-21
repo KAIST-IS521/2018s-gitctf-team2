@@ -90,13 +90,6 @@ int main(int argc, char *argv[])
     exit(-1);
   }
 
-  //	get port_num from args if passed in
-  //FIXME: [omnibusor] Vulnerable?
-  /*
-     if(argc >= 2) {
-     port_num = atoi(argv[1]);
-     }
-   */
   port_num = 58532;
 
   //create the server socket
@@ -108,13 +101,6 @@ int main(int argc, char *argv[])
   while(!go_exit) {
     tcp_select();
   }
-
-  /*
-     if (clients)
-     free(clients);
-     if (buf)
-     free(buf);
-   */
 
   return 0;
 }
@@ -281,7 +267,6 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 
   seq_num++;
 
-  //printf("Amount of data sent is: %d\n", sent);
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
