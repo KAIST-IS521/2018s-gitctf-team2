@@ -270,7 +270,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-  char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = (char*)buf;
+  char *clientHandle = NULL, *destHandle = NULL, *orig = (char*)buf;
   unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
@@ -304,16 +304,6 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
 
   buf += 1 + handleLength;
 
-  int malloc_size = message_len - 7 - handleLength - destLength;
-  if (malloc_size <= 0)
-    exit(-1);
-
-  message = malloc(malloc_size);
-  if (!message) {
-    perror("malloc");
-    exit(-1);
-  }
-
   if(handleExists(destHandle) > -1) {
     sendMessageOk(client_socket, handleLength, clientHandle);
     sendClientMessage(destHandle, orig, message_len);
@@ -324,7 +314,7 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
 }
 
 void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-  char *clientHandle = NULL, *message = NULL, *orig = (char*)buf;
+  char *clientHandle = NULL, *orig = (char*)buf;
   unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
@@ -339,12 +329,6 @@ void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int 
   clientHandle[handleLength] = '\0';
 
   buf += 6 + handleLength;
-
-  message = malloc(TEXT_MAX + 1);
-  if (!message) {
-    perror("malloc");
-    exit(-1);
-  }
 
   sendBroadcastToAll(client_socket, orig, message_len);
 }
