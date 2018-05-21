@@ -12,4 +12,4 @@ ADD . /src
 
 RUN cd /src; make
 
-ENTRYPOINT ["/src/server", "4000"]
+ENTRYPOINT ["/src/server"]
