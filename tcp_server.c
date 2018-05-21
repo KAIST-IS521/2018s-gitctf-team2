@@ -255,7 +255,7 @@ void tcp_receive(int client_socket) {
         clientBroadcastReceive(client_socket, buf, message_len);
         break;
       case CLIENT_MESSAGE:
-        clienteMessageReceive(client_socket, buf, message_len); 
+        clientMessageReceive(client_socket, buf, message_len); 
         break;
       case CLIENT_LIST:
         clientListReceive(client_socket, buf, message_len);
