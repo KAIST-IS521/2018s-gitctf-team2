@@ -39,6 +39,7 @@ void broadcast();
 void sendExitPacket();
 void clientExit();
 void terminate();
+void printMenu();
 
 char *client_handle;
 char *server_name;
@@ -47,6 +48,14 @@ int seq_num = 0;
 int socket_num;
 char *buf;              //buffer for receiving from client
 int buffer_size = 1024;  //packet size variable
+
+void printMenu(){
+  printf("< Menu  >\n");
+  printf("%%l : List users\n");
+  printf("%%b [MSG] : Broadcast\n");
+  printf("%%m [ID] [MSG] : Message\n");
+  printf("%%e : Exit\n\n");
+}
 
 int main(int argc, char * argv[])
 {
@@ -58,6 +67,8 @@ int main(int argc, char * argv[])
         printf("usage: %s handle server-name server-port\n", argv[0]);
 		exit(1);
     }
+
+  printMenu();
 	
 	/*	store client handle */
 	client_handle = malloc(strlen(argv[1]) + 1);
