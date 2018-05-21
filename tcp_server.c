@@ -26,8 +26,8 @@
 #define BACKLOG 5
 
 typedef struct clientStruct {
-	char  *handle;
-	int socket;
+  char  *handle;
+  int socket;
 } client;
 
 void sendPacket();
@@ -89,32 +89,32 @@ int main(int argc, char *argv[])
     perror("malloc");
     exit(-1);
   }
-  
+
   //	get port_num from args if passed in
   //FIXME: [omnibusor] Vulnerable?
   /*
-  if(argc >= 2) {
-    port_num = atoi(argv[1]);
-  }
-  */
+     if(argc >= 2) {
+     port_num = atoi(argv[1]);
+     }
+   */
   port_num = 58532;
-  
+
   //create the server socket
   server_socket = tcp_recv_setup(port_num);
-  
+
   //look for a client to serve
   tcp_listen();
-  
+
   while(!go_exit) {
     tcp_select();
   }
 
   /*
-  if (clients)
-    free(clients);
-  if (buf)
-    free(buf);
-  */
+     if (clients)
+     free(clients);
+     if (buf)
+     free(buf);
+   */
 
   return 0;
 }
@@ -129,32 +129,32 @@ int tcp_recv_setup(int port_num)
   int sk = -1;
   struct sockaddr_in local = {0,};      /* socket address for local side  */
   socklen_t len = sizeof(local);  /* length of local address        */
-  
+
   /* create the socket  */
   sk = socket(AF_INET, SOCK_STREAM, 0);
   if(sk < 0) {
     perror("socket call");
     exit(-1);
   }
-  
+
   local.sin_family = AF_INET;         //internet family
   local.sin_addr.s_addr = INADDR_ANY; //wild card machine address
   local.sin_port = htons(port_num);                 //let system choose the port
-  
+
   /* bind the name (address) to a port */
   if (bind(sk, (struct sockaddr *) &local, sizeof(local)) < 0) {
     perror("bind call");
     exit(-1);
   }
-  
+
   //get the port name and print it out
   if (getsockname(sk, (struct sockaddr*)&local, &len) < 0) {
     perror("getsockname call");
     exit(-1);
   }
-  
+
   printf("Server is using port %d\n", ntohs(local.sin_port));
-  
+
   return sk;
 }
 
@@ -164,8 +164,8 @@ int tcp_recv_setup(int port_num)
 void tcp_listen()
 {
   if (listen(server_socket, BACKLOG) < 0) {
-    	perror("listen call");
-    	exit(-1);
+    perror("listen call");
+    exit(-1);
   }
 }
 
@@ -175,10 +175,10 @@ int tcp_accept() {
     perror("accept call");
     exit(-1);
   }
-  
+
   //	Add client to array, increasing size if necessary
   clients[client_socket_count++].socket = client_socket;
-  
+
   if(client_socket_count == client_socket_max) {
     client_socket_max *= 2;
     client *temp = clients;
@@ -188,61 +188,61 @@ int tcp_accept() {
       clients[i] = temp[i];
     }
   }
-  
+
   return(client_socket);
 }
 
 int max_client_socket() {
-	int max = server_socket;
+  int max = server_socket;
   int i = 0;
-	for(i = 0; i < client_socket_count; i++) {
-		if(clients[i].socket > max)
+  for(i = 0; i < client_socket_count; i++) {
+    if(clients[i].socket > max)
       max = clients[i].socket;
-	}
-	return max;
+  }
+  return max;
 }
 
 void tcp_select() {
-	fd_set fdvar;
+  fd_set fdvar;
   int i = 0;
-	
-	FD_ZERO(&fdvar); // reset variables
 
-	//	check server socket first
-	FD_SET(server_socket, &fdvar);
-	
-	for(i = 0; i < client_socket_count; i++) {
-		FD_SET(clients[i].socket, &fdvar); 
-	}
-	
-	if(select(max_client_socket() + 1, (fd_set *) &fdvar, NULL, NULL, NULL)  < 0) {
-		perror("select call");
-		exit(-1);
-	}
-	
-	//	check server socket first
-	if(FD_ISSET(server_socket, &fdvar)) {
-		tcp_accept();
-	}
-	
-	//	check all client sockets
-	for(i = 0; i < client_socket_count; i++) {
-		if(FD_ISSET(clients[i].socket, &fdvar)) {
-			tcp_receive(clients[i].socket);
-		}
-	}
+  FD_ZERO(&fdvar); // reset variables
+
+  //	check server socket first
+  FD_SET(server_socket, &fdvar);
+
+  for(i = 0; i < client_socket_count; i++) {
+    FD_SET(clients[i].socket, &fdvar); 
+  }
+
+  if(select(max_client_socket() + 1, (fd_set *) &fdvar, NULL, NULL, NULL)  < 0) {
+    perror("select call");
+    exit(-1);
+  }
+
+  //	check server socket first
+  if(FD_ISSET(server_socket, &fdvar)) {
+    tcp_accept();
+  }
+
+  //	check all client sockets
+  for(i = 0; i < client_socket_count; i++) {
+    if(FD_ISSET(clients[i].socket, &fdvar)) {
+      tcp_receive(clients[i].socket);
+    }
+  }
 }
 
 void tcp_receive(int client_socket) {
-	unsigned int message_len = -1;
+  unsigned int message_len = -1;
   memset(buf, 0, buffer_size); // [omnibusor]
-  
+
   //now get the data on the client_socket
   if ((message_len = recv(client_socket, buf, buffer_size, 0)) < 0) {
     perror("recv call");
     exit(-1);
   }
-  
+
   if(message_len == 0) {
     clientExit(client_socket);
   }
@@ -271,364 +271,367 @@ void tcp_receive(int client_socket) {
 }
 
 void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
-	int sent;
-	
-	sent = send(client_socket, send_buf, send_len, 0);
-    if(sent < 0) {
-        perror("send call");
-		exit(-1);
-    }
-    
-    seq_num++;
+  int sent;
 
-    //printf("Amount of data sent is: %d\n", sent);
+  sent = send(client_socket, send_buf, send_len, 0);
+  if(sent < 0) {
+    perror("send call");
+    exit(-1);
+  }
+
+  seq_num++;
+
+  //printf("Amount of data sent is: %d\n", sent);
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-	char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = (char*)buf;
-	unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
+  char *clientHandle = NULL, *destHandle = NULL, *message = NULL, *orig = (char*)buf;
+  unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
   if (destLength < 0)
     exit(-1);
-		
-	destHandle = malloc(destLength + 1);
+
+  destHandle = malloc(destLength + 1);
   if (!destHandle) {
     perror("malloc");
     exit(-1);
   }
 
-	memcpy(destHandle, buf + 6, destLength);
-	destHandle[destLength] = '\0';
-	
-	buf += 6 + destLength;
-	
-	handleLength = (unsigned int) *buf;
-  
+  memcpy(destHandle, buf + 6, destLength);
+  destHandle[destLength] = '\0';
+
+  buf += 6 + destLength;
+
+  handleLength = (unsigned int) *buf;
+
   if (handleLength < 0)
     exit(-1);
-	
-	clientHandle = malloc(handleLength + 1);
+
+  clientHandle = malloc(handleLength + 1);
   if (!clientHandle) {
     perror("malloc");
     exit(-1);
   }
 
-	memcpy(clientHandle, buf + 1, handleLength);
-	clientHandle[handleLength] = '\0';
-	
-	buf += 1 + handleLength;
+  memcpy(clientHandle, buf + 1, handleLength);
+  clientHandle[handleLength] = '\0';
 
-  unsigned int malloc_size = message_len - 7 - handleLength - destLength;
+  buf += 1 + handleLength;
+
+  int malloc_size = message_len - 7 - handleLength - destLength;
   if (malloc_size <= 0)
     exit(-1);
-	
-	message = malloc(message_len - 7 - handleLength - destLength);
+
+  message = malloc(malloc_size);
   if (!message) {
     perror("malloc");
     exit(-1);
   }
   //FIXME:[omnibusor] strcpy -> strncpy??
-	//strncpy(message, buf, buffer_size);
-	strcpy(message, (char*)buf);
-		
-	if(handleExists(destHandle) > -1) {
-		sendMessageOk(client_socket, handleLength, clientHandle);
-		sendClientMessage(destHandle, orig, message_len);
-	} 
-	else {
-		sendMessageError(client_socket, destLength, destHandle);
-	}
+  //strncpy(message, buf, buffer_size);
+  strcpy(message, (char*)buf);
+
+  if(handleExists(destHandle) > -1) {
+    sendMessageOk(client_socket, handleLength, clientHandle);
+    sendClientMessage(destHandle, orig, message_len);
+  } 
+  else {
+    sendMessageError(client_socket, destLength, destHandle);
+  }
 }
 
 void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-	char *clientHandle = NULL, *message = NULL, *orig = (char*)buf;
-	unsigned int handleLength = (unsigned int) *(buf + 5);
+  char *clientHandle = NULL, *message = NULL, *orig = (char*)buf;
+  unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
-		
-	clientHandle = malloc(handleLength + 1); 
+
+  clientHandle = malloc(handleLength + 1); 
   if (!clientHandle) {
     perror("malloc");
     exit(-1);
   }
-	
-	memcpy(clientHandle, buf + 6, handleLength);
-	clientHandle[handleLength] = '\0';
-	
-	buf += 6 + handleLength;
 
-	message = malloc(TEXT_MAX + 1);
+  memcpy(clientHandle, buf + 6, handleLength);
+  clientHandle[handleLength] = '\0';
+
+  buf += 6 + handleLength;
+
+  message = malloc(TEXT_MAX + 1);
   if (!message) {
     perror("malloc");
     exit(-1);
   }
   //FIXME:[omnibusor] strcpy -> strncpy??
-	//strncpy(message, buf, buffer_size);
-	strcpy(message, (char*)buf);
-		
-	sendBroadcastToAll(client_socket, orig, message_len);
+  //strncpy(message, buf, buffer_size);
+  strcpy(message, (char*)buf);
+
+  sendBroadcastToAll(client_socket, orig, message_len);
 }
 
 void clientExitReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-	char *packet = NULL, *ptr = NULL;
-	
-	unsigned int packetLength = 5;
-	
-	packet = malloc(packetLength);
+  char *packet = NULL, *ptr = NULL;
+
+  unsigned int packetLength = 5;
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	*ptr = seq_num;
-	ptr += 4;
-	
-	*ptr = SERVER_EXIT_ACK;
-		
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  *ptr = seq_num;
+  ptr += 4;
+
+  *ptr = SERVER_EXIT_ACK;
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void clientListReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-	sendList(client_socket);
+  sendList(client_socket);
 }
 
 void sendList(int client_socket) {
-	int ndx;
-	
-	sendListCount(client_socket);
-	
-	for(ndx = 0; ndx < client_socket_count; ndx++) {
-		sendListHandle(client_socket, clients[ndx].handle);
-	}
+  int ndx;
+
+  sendListCount(client_socket);
+
+  for(ndx = 0; ndx < client_socket_count; ndx++) {
+    if (clients[ndx].handle == NULL)
+      exit(-1);
+    sendListHandle(client_socket, clients[ndx].handle);
+  }
 }
 
 void sendListCount(int client_socket) {
-	char *packet, *ptr;
-	
-	unsigned int packetLength = 5 + 4;
-	
-	packet = malloc(packetLength);
+  char *packet, *ptr;
+
+  unsigned int packetLength = 5 + 4;
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	*ptr = seq_num;
-	ptr += 4;
-	
-	*ptr = SERVER_LIST;
-	ptr += 1;
-	
-	*ptr = client_socket_count;
-		
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  *ptr = seq_num;
+  ptr += 4;
+
+  *ptr = SERVER_LIST;
+  ptr += 1;
+
+  *ptr = client_socket_count;
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void sendListHandle(int client_socket, char *handle) {
-	char *packet = NULL, *ptr = NULL;
-	unsigned int handleLength = strlen(handle);
+  char *packet = NULL, *ptr = NULL;
+  unsigned int handleLength = strlen(handle);
   if (handleLength < 0)
     exit(-1);
-	
-	unsigned int packetLength = 1 + handleLength;
+
+  unsigned int packetLength = 1 + handleLength;
   if (packetLength < 0)
     exit(-1);
-	
-	packet = malloc(packetLength);
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
 
-	ptr = packet;
-	
-	memset(ptr, handleLength, 1);
-	ptr += 1;
-	
-	memcpy(ptr, handle, handleLength);
-	
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  memset(ptr, handleLength, 1);
+  ptr += 1;
+
+  memcpy(ptr, handle, handleLength);
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void sendClientMessage(char *dest_handle, char *packet, unsigned int packet_len) {
-	int index = handleExists(dest_handle);
-	int dest_socket = clients[index].socket;
-	
-	sendPacket(dest_socket, packet, packet_len);
+  int index = handleExists(dest_handle);
+  int dest_socket = clients[index].socket;
+
+  sendPacket(dest_socket, packet, packet_len);
 }
 
 void sendBroadcastToAll(int sender_socket, char *packet, unsigned int packet_len) {
-	int ndx;
-	for(ndx = 0; ndx < client_socket_count; ndx++) {
-		if(clients[ndx].socket != sender_socket) {
-			sendPacket(clients[ndx].socket, packet, packet_len);
-		}
-	}
+  int ndx;
+  for(ndx = 0; ndx < client_socket_count; ndx++) {
+    if(clients[ndx].socket != sender_socket) {
+      sendPacket(clients[ndx].socket, packet, packet_len);
+    }
+  }
 }
 
 void sendMessageOk(int client_socket, unsigned int handleLength, char *clientHandle) {
-	char *packet = NULL, *ptr = NULL;
-	
-	unsigned int packetLength = 5 + 1 + handleLength;
+  char *packet = NULL, *ptr = NULL;
+
+  unsigned int packetLength = 5 + 1 + handleLength;
   if (packetLength <= 0)
     exit(-1);
-	
-	packet = malloc(packetLength);
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	*ptr = seq_num;
-	ptr += 4;
-	
-	memset(ptr, SERVER_MESSAGE_GOOD, 1);
-	ptr += 1;
-	
-	memset(ptr, handleLength, 1);
-	ptr += 1;
-	
-	memcpy(ptr, clientHandle, handleLength);
-	
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  *ptr = seq_num;
+  ptr += 4;
+
+  memset(ptr, SERVER_MESSAGE_GOOD, 1);
+  ptr += 1;
+
+  memset(ptr, handleLength, 1);
+  ptr += 1;
+
+  memcpy(ptr, clientHandle, handleLength);
+
+  sendPacket(client_socket, packet, packetLength);
 }
 void sendMessageError(int client_socket, unsigned int handleLength, char *clientHandle) {
-	char *packet, *ptr;
-	
-	unsigned int packetLength = 5 + 1 + handleLength;
+  char *packet, *ptr;
+
+  unsigned int packetLength = 5 + 1 + handleLength;
   if (packetLength <= 0)
     exit(-1);
-	
-	packet = malloc(packetLength);
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	//memset(ptr, seq_num, 4);
-	*ptr = seq_num;
-	ptr += 4;
-	
-	memset(ptr, SERVER_MESSAGE_ERROR, 1);
-	ptr += 1;
-	
-	memset(ptr, handleLength, 1);
-	ptr += 1;
-	
-	memcpy(ptr, clientHandle, handleLength);
-	
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  //memset(ptr, seq_num, 4);
+  *ptr = seq_num;
+  ptr += 4;
+
+  memset(ptr, SERVER_MESSAGE_ERROR, 1);
+  ptr += 1;
+
+  memset(ptr, handleLength, 1);
+  ptr += 1;
+
+  memcpy(ptr, clientHandle, handleLength);
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void initialPacketReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
-	char *clientHandle = NULL;
-	unsigned int handleLength = (unsigned int) *(buf + 5);
+  char *clientHandle = NULL;
+  unsigned int handleLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
-	clientHandle = (char *) malloc(handleLength + 1);
+  clientHandle = (char *) malloc(handleLength + 1);
   if (!clientHandle) {
     perror("malloc");
     exit(-1);
   }
-	
-	memcpy(clientHandle, buf + 6, handleLength);
-	clientHandle[handleLength] = '\0';
-		
-	if(handleExists(clientHandle) > -1) {
-		sendErrorHandle(client_socket);
-	} 
-	else {
-		int index = findClient(client_socket);
+
+  memcpy(clientHandle, buf + 6, handleLength);
+  clientHandle[handleLength] = '\0';
+
+  if(handleExists(clientHandle) > -1) {
+    sendErrorHandle(client_socket);
+  } 
+  else {
+    int index = findClient(client_socket);
     if (index < 0)
       exit(-1);
-		//clients[index].handle = (char *) malloc(handleLength + 1);
-		clients[index].handle = clientHandle;
+    //clients[index].handle = (char *) malloc(handleLength + 1);
+    clients[index].handle = clientHandle;
     //FIXME:[omnibusor] strcpy -> strncpy??
-		//strncpy(clients[index].handle, clientHandle, handleLength);
-		strcpy(clients[index].handle, clientHandle);
-		
-		sendConfirmGoodHandle(client_socket);
-	}
+    //strncpy(clients[index].handle, clientHandle, handleLength);
+    strcpy(clients[index].handle, clientHandle);
+
+    sendConfirmGoodHandle(client_socket);
+  }
 }
 
 int findClient(int socket) {
-	int index;
-	
-	for(index  = 0; index < client_socket_count; index++) {
-		if(clients[index].socket == socket) {
-			return index;
-		}
-	}
-	
-	return -1;
+  int index;
+
+  for(index  = 0; index < client_socket_count; index++) {
+    if(clients[index].socket == socket) {
+      return index;
+    }
+  }
+
+  return -1;
 }
 
 int handleExists(char *handle) {
-	int ndx;
-	for(ndx = 0; ndx < client_socket_count; ndx++) {
-		if(clients[ndx].handle && strcmp(clients[ndx].handle, handle) == 0) {
-			return ndx;
-		}
-	}
-	return -1;
+  int ndx;
+  for(ndx = 0; ndx < client_socket_count; ndx++) {
+    if(clients[ndx].handle && strcmp(clients[ndx].handle, handle) == 0) {
+      return ndx;
+    }
+  }
+  return -1;
 }
 
 void sendConfirmGoodHandle(int client_socket) {
-	char *packet = NULL;
+  char *packet = NULL;
   char *ptr = NULL;
-	
-	unsigned int packetLength = 5;
-	
-	packet = malloc(packetLength);
+
+  unsigned int packetLength = 5;
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	//memset(ptr, seq_num, 4);
-	*ptr = seq_num;
-	ptr += 4;
-	
-	memset(ptr, SERVER_INITIAL_GOOD, 1);
-	
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  //memset(ptr, seq_num, 4);
+  *ptr = seq_num;
+  ptr += 4;
+
+  memset(ptr, SERVER_INITIAL_GOOD, 1);
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void sendErrorHandle(int client_socket) {
-	char *packet = NULL, *ptr = NULL;
-		
-	unsigned int packetLength = 5;
-	
-	packet = malloc(packetLength);
+  char *packet = NULL, *ptr = NULL;
+
+  unsigned int packetLength = 5;
+
+  packet = malloc(packetLength);
   if (!packet) {
     perror("malloc");
     exit(-1);
   }
-	ptr = packet;
-		
-	//memset(ptr, seq_num, 4);
-	*ptr = seq_num;
-	ptr += 4;
-	
-	memset(ptr, SERVER_INITIAL_ERROR, 1);
-	
-	sendPacket(client_socket, packet, packetLength);
+  ptr = packet;
+
+  //memset(ptr, seq_num, 4);
+  *ptr = seq_num;
+  ptr += 4;
+
+  memset(ptr, SERVER_INITIAL_ERROR, 1);
+
+  sendPacket(client_socket, packet, packetLength);
 }
 
 void clientExit(int client_socket) {
-	int index = findClient(client_socket);
-	int i;
-	
-	for(i = index; i < client_socket_count + 1; i++) {
-		clients[i] = clients[i + 1];
-	}	
-	
-	client_socket_count--;	
+  int index = findClient(client_socket);
+  int i;
+
+  for(i = index; i < client_socket_count + 1; i++) {
+    clients[i] = clients[i + 1];
+  }	
+  clients[i].handle = NULL;	
+  clients[i].socket = -1;
+  client_socket_count--;	
 }
 
