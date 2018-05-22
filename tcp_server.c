@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     exit(-1);
   }
 
-  port_num = 58532;
+  port_num = atoi(argv[1]);
 
   //create the server socket
   server_socket = tcp_recv_setup(port_num);
@@ -266,7 +266,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
   }
 
   seq_num++;
-
+  sleep(0.3);
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
