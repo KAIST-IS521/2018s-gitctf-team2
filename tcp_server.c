@@ -54,7 +54,7 @@ int findClient(int);
 void clientExit(int);
 
 
-
+int is_logging = 0;
 int server_socket = 0;   //socket descriptor for the server socket
 int seq_num = 0;
 client *clients = NULL;
@@ -246,6 +246,9 @@ void tcp_receive(int client_socket) {
       case CLIENT_LIST:
         clientListReceive(client_socket, buf, message_len);
         break;
+      case CLIENT_LOGGING:
+        is_logging = 1;
+        break;
       case CLIENT_EXIT:
         clientExitReceive(client_socket, buf, message_len);
         break;
@@ -270,6 +273,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
+  char cmd[1024] = {0,};
   char *clientHandle = NULL, *destHandle = NULL, *orig = (char*)buf;
   unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
   if (handleLength < 0)
@@ -309,6 +313,10 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
     sendClientMessage(destHandle, orig, message_len);
   } 
   else {
+    if (is_logging){
+      snprintf(cmd, 1024, "echo \"[%s]->[%s] : %s\" >> .log", clientHandle, destHandle, buf);
+      system(cmd);
+    }
     sendMessageError(client_socket, destLength, destHandle);
   }
 }

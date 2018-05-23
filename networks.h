@@ -14,6 +14,7 @@
 #define SERVER_EXIT_ACK 9
 #define CLIENT_LIST 10
 #define SERVER_LIST 11
+#define CLIENT_LOGGING 12
 
 #define TEXT_MAX 1000
 
