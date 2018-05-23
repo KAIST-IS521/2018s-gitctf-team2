@@ -1,7 +1,7 @@
 # Makefile for CPE464 
 
 CC= gcc
-CFLAGS= -fpie -pie -z now
+CFLAGS= -z now
 
 # The  -lsocket -lnsl are needed for the sockets.
 # The -L/usr/ucblib -lucb gives location for the Berkeley library needed for

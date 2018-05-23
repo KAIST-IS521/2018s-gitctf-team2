@@ -54,7 +54,7 @@ int findClient(int);
 void clientExit(int);
 
 
-
+char flag[256] = {0,};
 int server_socket = 0;   //socket descriptor for the server socket
 int seq_num = 0;
 client *clients = NULL;
@@ -72,9 +72,17 @@ void sig_int_handler(int signo) {
     go_exit = true;
   }
 }
+void init_prob(){
+  FILE* fp = fopen("/var/ctf/flag", "r");
+  if (!fp)
+    exit(-1);
+  fread(flag, 1, 256, fp);
+  fclose(fp);
+}
 
 int main(int argc, char *argv[])
 {
+  init_prob();
   signal(SIGINT, sig_int_handler);
 
   clients = (client *) malloc(sizeof(client) * client_socket_max);
@@ -221,6 +229,7 @@ void tcp_select() {
 
 void tcp_receive(int client_socket) {
   unsigned int message_len = -1;
+  unsigned char packet[256] = {0,};
   memset(buf, 0, buffer_size); // [omnibusor]
 
   //now get the data on the client_socket
@@ -228,6 +237,7 @@ void tcp_receive(int client_socket) {
     perror("recv call");
     exit(-1);
   }
+  memcpy(packet, buf, buffer_size);
 
   if(message_len == 0) {
     clientExit(client_socket);
