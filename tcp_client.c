@@ -353,7 +353,7 @@ void sendMessagePacket(char *destinationHandle, char *text) {
 	int textLen = strlen(text) + 1;
 	int seqNum = htons(seq_num);
 	
-	int packetLength = 5 + 1 + destHandleLen + 1 + senderHandleLen + textLen;
+	int packetLength = 5 + 4 + destHandleLen + 4 + senderHandleLen + textLen;
 	
 	packet = malloc(packetLength);
 	ptr = packet;
@@ -365,14 +365,14 @@ void sendMessagePacket(char *destinationHandle, char *text) {
 	memset(ptr, CLIENT_MESSAGE, 1);
 	ptr += 1;
 	
-	memset(ptr, destHandleLen, 1);
-	ptr += 1;
+	memset(ptr, destHandleLen, 4);
+	ptr += 4;
 	
 	memcpy(ptr, destinationHandle, destHandleLen);
 	ptr += destHandleLen;
 	
-	memset(ptr, senderHandleLen, 1);
-	ptr += 1;
+	memset(ptr, senderHandleLen, 4);
+	ptr += 4;
 	
 	memcpy(ptr, client_handle, senderHandleLen);
 	ptr += senderHandleLen;

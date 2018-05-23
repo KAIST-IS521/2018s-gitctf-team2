@@ -271,11 +271,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
   char *clientHandle = NULL, *destHandle = NULL, *orig = (char*)buf;
-  unsigned int handleLength = 0, destLength = (unsigned int) *(buf + 5);
-  if (handleLength < 0)
-    exit(-1);
-  if (destLength < 0)
-    exit(-1);
+  long handleLength = 0, destLength = (long) *(int*)(buf + 5);
 
   destHandle = malloc(destLength + 1);
   if (!destHandle) {
@@ -283,12 +279,11 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
     exit(-1);
   }
 
-  memcpy(destHandle, buf + 6, destLength);
-  destHandle[destLength] = '\0';
+  strcpy(destHandle, (char*)buf + 9);
 
-  buf += 6 + destLength;
+  buf += 9 + destLength;
 
-  handleLength = (unsigned int) *buf;
+  handleLength = (long) *(int*)buf;
 
   if (handleLength < 0)
     exit(-1);
@@ -299,10 +294,9 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
     exit(-1);
   }
 
-  memcpy(clientHandle, buf + 1, handleLength);
-  clientHandle[handleLength] = '\0';
+  strcpy(clientHandle, (char*)buf + 4);
 
-  buf += 1 + handleLength;
+  buf += 4 + handleLength;
 
   if(handleExists(destHandle) > -1) {
     sendMessageOk(client_socket, handleLength, clientHandle);
@@ -315,7 +309,7 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
 
 void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
   char *clientHandle = NULL, *orig = (char*)buf;
-  unsigned int handleLength = (unsigned int) *(buf + 5);
+  long handleLength = (long) *(buf + 5);
   if (handleLength < 0)
     exit(-1);
 
@@ -336,7 +330,7 @@ void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int 
 void clientExitReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
   char *packet = NULL, *ptr = NULL;
 
-  unsigned int packetLength = 5;
+  long packetLength = 5;
 
   packet = malloc(packetLength);
   if (!packet) {
@@ -372,7 +366,7 @@ void sendList(int client_socket) {
 void sendListCount(int client_socket) {
   char *packet, *ptr;
 
-  unsigned int packetLength = 5 + 4;
+  long packetLength = 5 + 4;
 
   packet = malloc(packetLength);
   if (!packet) {
