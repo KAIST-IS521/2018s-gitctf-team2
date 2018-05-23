@@ -155,6 +155,8 @@ void tcp_select() {
     	
     	if(input_buf[0] != '%') {
     		printf("Invalid command\n");
+        printf("$: ");
+        fflush(stdout);
     	}
     	else if(input_buf[1] == 'M' || input_buf[1] == 'm') {
     		message(input_buf);
@@ -167,15 +169,15 @@ void tcp_select() {
     	}
     	else if(input_buf[1] == 'L' || input_buf[1] == 'l') {
     		sendListPacket();
-    		
-    		printf("$: ");
-    		fflush(stdout);
     	}
     	else if(input_buf[1] == 'E' || input_buf[1] == 'e') {
     		sendExitPacket();
     	}
     	else {
     		printf("Invalid command\n");
+        printf("$: ");
+        fflush(stdout);
+
     	} 
 	}
 	
