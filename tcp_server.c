@@ -252,6 +252,7 @@ void tcp_receive(int client_socket) {
         break;
       default:
         printf("some flag\n");
+        sendPacket(client_socket, &server_socket, 4);
         break;
     }  
   }    
