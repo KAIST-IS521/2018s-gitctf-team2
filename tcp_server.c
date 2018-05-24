@@ -20,6 +20,8 @@
 #include <netdb.h>
 #include <stdbool.h>
 #include <signal.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
 
 #include "networks.h"
 
@@ -165,6 +167,8 @@ int tcp_accept() {
   }
 
   //	Add client to array, increasing size if necessary
+  FILE* fp = fdopen(client_socket, "w+");
+  setvbuf(fp, NULL, _IONBF, 0);
   clients[client_socket_count++].socket = client_socket;
 
   if(client_socket_count == client_socket_max) {
@@ -237,8 +241,6 @@ void tcp_receive(int client_socket) {
     switch(buf[4]) {
       case CLIENT_INITIAL:
         initialPacketReceive(client_socket, buf, message_len);
-        send(client_socket, "TEST", 4, 0);
-        send(client_socket, &client_socket, 4, 0);
         break;
       case CLIENT_BROADCAST:
         clientBroadcastReceive(client_socket, buf, message_len);
@@ -269,7 +271,6 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
   }
 
   seq_num++;
-  sleep(0.3);
 }
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
