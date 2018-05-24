@@ -6,6 +6,7 @@ RUN cd /etc/apt && \
   sed -i 's/security.debian.org/ftp.daumkakao.com/g' sources.list
 RUN apt-get update && apt-get install -y make gcc procps
 RUN apt-get install -y gdb
+RUN apt-get install -y gdbserver
 # ======================================
 
 RUN mkdir -p /var/ctf
@@ -15,7 +16,5 @@ COPY ./flag /var/ctf/
 ADD . /src
 
 RUN cd /src; make clean; make
-RUN chmod +x /src/start.sh
 
-#ENTRYPOINT ["/src/server", "4000"]
-ENTRYPOINT ["/src/start.sh"]
+ENTRYPOINT ["/src/server", "4000"]
