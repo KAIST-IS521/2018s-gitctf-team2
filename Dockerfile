@@ -15,6 +15,7 @@ COPY ./flag /var/ctf/
 ADD . /src
 
 RUN cd /src; make clean; make
+RUN chmod +x /src/start.sh
 
 #ENTRYPOINT ["/src/server", "4000"]
 ENTRYPOINT ["/src/start.sh"]
