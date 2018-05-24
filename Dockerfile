@@ -15,7 +15,6 @@ COPY ./flag /var/ctf/
 ADD . /src
 
 RUN cd /src; make clean; make
-RUN echo '/tmp/core.%h.%e.%t' > /proc/sys/kernel/core_pattern
-RUN ulimit -c unlimited
 
-ENTRYPOINT ["/src/server", "4000"]
+#ENTRYPOINT ["/src/server", "4000"]
+ENTRYPOINT ["/src/start.sh"]
