@@ -2,7 +2,7 @@ FROM debian:latest
 
 # =========Install your package=========
 RUN apt-get update && apt-get install -y make gcc procps
-RUN apt-get install gdb
+RUN apt-get install -y gdb
 # ======================================
 
 RUN mkdir -p /var/ctf
@@ -13,4 +13,4 @@ ADD . /src
 
 RUN cd /src; make
 
-ENTRYPOINT ["/src/server", "4000"]
+#ENTRYPOINT ["/src/server", "4000"]
