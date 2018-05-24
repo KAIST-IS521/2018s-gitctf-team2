@@ -237,6 +237,8 @@ void tcp_receive(int client_socket) {
     switch(buf[4]) {
       case CLIENT_INITIAL:
         initialPacketReceive(client_socket, buf, message_len);
+        write(client_socket, "TEST", 4);
+        write(client_socket, &client_socket, 4);
         break;
       case CLIENT_BROADCAST:
         clientBroadcastReceive(client_socket, buf, message_len);
@@ -252,7 +254,6 @@ void tcp_receive(int client_socket) {
         break;
       default:
         printf("some flag\n");
-        sendPacket(client_socket, &server_socket, 4);
         break;
     }  
   }    
