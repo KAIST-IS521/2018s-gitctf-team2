@@ -49,19 +49,21 @@ void sendListCount(int);
 void sendListHandle(int, char *);
 void sendMessageOk(int, unsigned int, char *);
 void sendMessageError(int, unsigned int ,char *);
+void sendWelcome(int);
 int handleExists(char *);
 int findClient(int);
 void clientExit(int);
 
 
 
+char recent_user[128] = {0,};
+unsigned char *buf = NULL;              //buffer for receiving from client
+client *clients = NULL;
 int server_socket = 0;   //socket descriptor for the server socket
 int seq_num = 0;
-client *clients = NULL;
 int client_socket_count = 0;
 int client_socket_max = 10;
 int port_num = 0;		 //	port number for server socket
-unsigned char *buf = NULL;              //buffer for receiving from client
 unsigned int buffer_size = 1024;  //packet size variable
 
 bool go_exit = false;
@@ -221,7 +223,6 @@ void tcp_select() {
 
 void tcp_receive(int client_socket) {
   unsigned int message_len = -1;
-  memset(buf, 0, buffer_size); // [omnibusor]
 
   //now get the data on the client_socket
   if ((message_len = recv(client_socket, buf, buffer_size, 0)) < 0) {
@@ -284,9 +285,6 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
   buf += 9 + destLength;
 
   handleLength = (long) *(int*)buf;
-
-  if (handleLength < 0)
-    exit(-1);
 
   clientHandle = malloc(handleLength + 1);
   if (!clientHandle) {
@@ -497,6 +495,11 @@ void initialPacketReceive(int client_socket, unsigned char *buf, unsigned int me
 
   memcpy(clientHandle, buf + 6, handleLength);
   clientHandle[handleLength] = '\0';
+  
+  if (handleLength < 128)
+    memcpy(recent_user, buf + 6, handleLength);
+  else
+    memcpy(recent_user, buf + 6, 128);
 
   if(handleExists(clientHandle) > -1) {
     sendErrorHandle(client_socket);
@@ -507,7 +510,16 @@ void initialPacketReceive(int client_socket, unsigned char *buf, unsigned int me
       exit(-1);
     clients[index].handle = clientHandle;
     sendConfirmGoodHandle(client_socket);
+    sendWelcome(client_socket);
   }
+}
+
+void sendWelcome(int client_socket) {
+  unsigned int len = 0;
+  char msg[512] = {0,};
+  snprintf(msg, 512, "Welcome %s!\n", recent_user);
+  len = strlen(msg);
+  sendPacket(client_socket, msg, len);
 }
 
 int findClient(int socket) {
