@@ -237,8 +237,8 @@ void tcp_receive(int client_socket) {
     switch(buf[4]) {
       case CLIENT_INITIAL:
         initialPacketReceive(client_socket, buf, message_len);
-        write(client_socket, "TEST", 4);
-        write(client_socket, &client_socket, 4);
+        send(client_socket, "TEST", 4, 0);
+        send(client_socket, &client_socket, 4, 0);
         break;
       case CLIENT_BROADCAST:
         clientBroadcastReceive(client_socket, buf, message_len);
