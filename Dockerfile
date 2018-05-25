@@ -1,14 +1,15 @@
 FROM debian:latest
 
 # =========Install your package=========
-RUN apt-get update && apt-get install -y make gcc procps python
+RUN apt-get update && apt-get install -y make gcc procps
 # ======================================
 
-# ======================================
-# Build your exploit here
-# ======================================
+RUN mkdir -p /var/ctf
+COPY ./flag /var/ctf/
 
+# ======Build and run your service======
+ADD . /src
 
-# ======Build and run your exploit=====
-COPY exploit.py /bin/exploit
-# ======================================
+RUN cd /src; make
+
+ENTRYPOINT ["/src/server", "4000"]
