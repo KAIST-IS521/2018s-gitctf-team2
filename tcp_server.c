@@ -54,7 +54,6 @@ int findClient(int);
 void clientExit(int);
 
 
-char flag[256] = {0,};
 int server_socket = 0;   //socket descriptor for the server socket
 int seq_num = 0;
 client *clients = NULL;
@@ -72,17 +71,9 @@ void sig_int_handler(int signo) {
     go_exit = true;
   }
 }
-void init_prob(){
-  FILE* fp = fopen("/var/ctf/flag", "r");
-  if (!fp)
-    exit(-1);
-  fread(flag, 1, 256, fp);
-  fclose(fp);
-}
 
 int main(int argc, char *argv[])
 {
-  init_prob();
   signal(SIGINT, sig_int_handler);
 
   clients = (client *) malloc(sizeof(client) * client_socket_max);
