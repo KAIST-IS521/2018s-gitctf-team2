@@ -10,6 +10,6 @@ COPY ./flag /var/ctf/
 # ======Build and run your service======
 ADD . /src
 
-RUN cd /src; make
+RUN cd /src; make clean; make
 
 ENTRYPOINT ["/src/server", "4000"]
