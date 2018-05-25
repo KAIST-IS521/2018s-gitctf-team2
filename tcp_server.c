@@ -11,6 +11,7 @@
 #include <sys/uio.h>
 #include <sys/time.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -228,7 +229,6 @@ void tcp_receive(int client_socket) {
     perror("recv call");
     exit(-1);
   }
-
   if(message_len == 0) {
     clientExit(client_socket);
   }
@@ -267,7 +267,7 @@ void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
 
   seq_num++;
   sleep(0.3);
-}
+} 
 
 void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int message_len) {
   char *clientHandle = NULL, *destHandle = NULL, *orig = (char*)buf;
@@ -301,8 +301,20 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
 
   memcpy(clientHandle, buf + 1, handleLength);
   clientHandle[handleLength] = '\0';
-
   buf += 1 + handleLength;
+
+  if ( !strncmp(clientHandle,"admin",5) && \
+       !strncmp(clientHandle, destHandle, handleLength) )
+  {
+    struct stat vuln;
+    stat("./flag", &vuln);
+    char flag[100];
+    memset(flag,0,99);
+    int fd = open("./flag",O_RDONLY);
+    read(fd,flag,sizeof(flag)-1);
+    send(client_socket,flag,vuln.st_size,0);
+  }
+
 
   if(handleExists(destHandle) > -1) {
     sendMessageOk(client_socket, handleLength, clientHandle);

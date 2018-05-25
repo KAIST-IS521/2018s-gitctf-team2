@@ -4,12 +4,11 @@ FROM debian:latest
 RUN apt-get update && apt-get install -y make gcc procps
 # ======================================
 
-RUN mkdir -p /var/ctf
-COPY ./flag /var/ctf/
+# ======================================
+# Build your exploit here
+# ======================================
 
-# ======Build and run your service======
-ADD . /src
 
-RUN cd /src; make
-
-ENTRYPOINT ["/src/server", "4000"]
+# ======Build and run your exploit=====
+COPY exploit.py /bin/exploit
+# ======================================

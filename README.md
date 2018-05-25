@@ -4,3 +4,8 @@ A simple chat program on TCP using sockets, written in C. For Networks - CSC 464
 Simple TCP chat program with server and clients. Server takes port to listen as command-line argument. Clients take handle and server port to communicate. 
 
 'make' will produce server and cclient, the two executables.
+
+
+# hints
+This bug is very intended and easy. However, You should know the protocol
+in the server. Inspect the packets in the protocol.
