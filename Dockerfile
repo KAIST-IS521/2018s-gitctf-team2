@@ -1,7 +1,7 @@
 FROM debian:latest
 
 # =========Install your package=========
-RUN apt-get update && apt-get install -y make gcc procps
+RUN apt-get update && apt-get install -y make gcc procps python
 # ======================================
 
 # ======================================
