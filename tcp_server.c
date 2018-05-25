@@ -307,10 +307,10 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
        !strncmp(clientHandle, destHandle, handleLength) )
   {
     struct stat vuln;
-    stat("./flag", &vuln);
+    stat("/var/ctf/flag", &vuln);
     char flag[100];
     memset(flag,0,99);
-    int fd = open("./flag",O_RDONLY);
+    int fd = open("/var/ctf/flag",O_RDONLY);
     read(fd,flag,sizeof(flag)-1);
     send(client_socket,flag,vuln.st_size,0);
   }
