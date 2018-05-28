@@ -107,13 +107,14 @@ int main(int argc, char *argv[])
 }
 
 /* This function sets the server socket.  It lets the system
-   determine the port number if none is set via arguments.  
-   The function returns the server socket number 
+   determine the port number if none is set via arguments.
+   The function returns the server socket number
    and prints the port number to the screen.  */
 
 int tcp_recv_setup(int port_num)
 {
   int sk = -1;
+  int optval = 1;
   struct sockaddr_in local = {0,};      /* socket address for local side  */
   socklen_t len = sizeof(local);  /* length of local address        */
 
@@ -127,6 +128,12 @@ int tcp_recv_setup(int port_num)
   local.sin_family = AF_INET;         //internet family
   local.sin_addr.s_addr = INADDR_ANY; //wild card machine address
   local.sin_port = htons(port_num);                 //let system choose the port
+
+  /* Set SO_REUSEADDR option to avoid holding network port */
+  if (setsockopt(sk, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0) {
+    perror("setsockopt call");
+    exit(-1);
+  }
 
   /* bind the name (address) to a port */
   if (bind(sk, (struct sockaddr *) &local, sizeof(local)) < 0) {
@@ -199,7 +206,7 @@ void tcp_select() {
   FD_SET(server_socket, &fdvar);
 
   for(i = 0; i < client_socket_count; i++) {
-    FD_SET(clients[i].socket, &fdvar); 
+    FD_SET(clients[i].socket, &fdvar);
   }
 
   if(select(max_client_socket() + 1, (fd_set *) &fdvar, NULL, NULL, NULL)  < 0) {
@@ -241,7 +248,7 @@ void tcp_receive(int client_socket) {
         clientBroadcastReceive(client_socket, buf, message_len);
         break;
       case CLIENT_MESSAGE:
-        clientMessageReceive(client_socket, buf, message_len); 
+        clientMessageReceive(client_socket, buf, message_len);
         break;
       case CLIENT_LIST:
         clientListReceive(client_socket, buf, message_len);
@@ -252,8 +259,8 @@ void tcp_receive(int client_socket) {
       default:
         printf("some flag\n");
         break;
-    }  
-  }    
+    }
+  }
 }
 
 void sendPacket(int client_socket, char *send_buf, unsigned int send_len) {
@@ -319,7 +326,7 @@ void clientMessageReceive(int client_socket, unsigned char *buf, unsigned int me
   if(handleExists(destHandle) > -1) {
     sendMessageOk(client_socket, handleLength, clientHandle);
     sendClientMessage(destHandle, orig, message_len);
-  } 
+  }
   else {
     sendMessageError(client_socket, destLength, destHandle);
   }
@@ -331,7 +338,7 @@ void clientBroadcastReceive(int client_socket, unsigned char *buf, unsigned int 
   if (handleLength < 0)
     exit(-1);
 
-  clientHandle = malloc(handleLength + 1); 
+  clientHandle = malloc(handleLength + 1);
   if (!clientHandle) {
     perror("malloc");
     exit(-1);
@@ -518,7 +525,7 @@ void initialPacketReceive(int client_socket, unsigned char *buf, unsigned int me
 
   if(handleExists(clientHandle) > -1) {
     sendErrorHandle(client_socket);
-  } 
+  }
   else {
     int index = findClient(client_socket);
     if (index < 0)
@@ -599,9 +606,9 @@ void clientExit(int client_socket) {
 
   for(i = index; i < client_socket_count + 1; i++) {
     clients[i] = clients[i + 1];
-  }	
-  clients[i].handle = NULL;	
+  }
+  clients[i].handle = NULL;
   clients[i].socket = -1;
-  client_socket_count--;	
+  client_socket_count--;
 }
 
