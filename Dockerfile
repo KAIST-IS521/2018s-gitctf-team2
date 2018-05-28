@@ -1,6 +1,8 @@
 FROM debian:latest
 
 # =========Install your package=========
+RUN \
+        sed -i 's/deb.debian.org/ftp.daumkakao.com/g' /etc/apt/sources.list
 RUN apt-get update && apt-get install -y make gcc procps
 # ======================================
 
